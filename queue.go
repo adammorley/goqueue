@@ -2,7 +2,6 @@
 // note that the Enqueue method enforces that each value added is of the same type, as a safety measure
 package queue
 
-import "errors"
 import "fmt"
 import "reflect"
 
@@ -12,6 +11,14 @@ type Queue struct {
     back *element
     size uint
     capacity uint
+}
+
+// a queue can return an error message in exceptional conditions
+type QueueError struct {
+    msg string
+}
+func (e *QueueError) Error() string {
+    return fmt.Sprintf("queue %v", e.msg)
 }
 
 // an element on the queue; each element has a pointer to the next and previous elements in the queue, along with the value stored at the element
@@ -31,11 +38,11 @@ func New(capacity uint) *Queue {
     return q
 }
 
+// since a queue can contain any arbitrary type, it can return an error if the type is not the same.
 type EnqueueTypeError struct {
     passed string
     stored string
 }
-
 func (e *EnqueueTypeError) Error() string {
     return fmt.Sprintf("type mismatch, received: %v, expected: %v", e.passed, e.stored)
 }
@@ -43,7 +50,7 @@ func (e *EnqueueTypeError) Error() string {
 // enqueue a value on the queue, ensuring that the type of the to-be-added element is the same as the existing elements on the queue.
 func (q *Queue) Enqueue(i interface{}) error {
     if q.size + 1 > q.capacity {
-        return errors.New("queue full")
+        return &QueueError{msg: "full"}
     }
     var e *element = new(element)
     e.next = nil
@@ -66,7 +73,7 @@ func (q *Queue) Enqueue(i interface{}) error {
 // dequeue a value on the queue.  returns error if queue empty
 func (q *Queue) Dequeue() (interface{}, error) {
     if q.front == nil {
-        return nil, errors.New("empty queue")
+        return nil, &QueueError{msg: "empty"}
     }
     var e *element = q.front
     q.front = e.next
