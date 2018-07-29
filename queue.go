@@ -3,6 +3,7 @@
 package queue
 
 import "errors"
+import "fmt"
 import "reflect"
 
 // a queue, which has a pointer to the front and back.  elements are added ("enqueue"'d) to the back and removed ("dequeue"'d) from the front
@@ -30,6 +31,15 @@ func New(capacity uint) *Queue {
     return q
 }
 
+type EnqueueTypeError struct {
+    passed string
+    stored string
+}
+
+func (e *EnqueueTypeError) Error() string {
+    return fmt.Sprintf("type mismatch, received: %v, expected: %v", e.passed, e.stored)
+}
+
 // enqueue a value on the queue, ensuring that the type of the to-be-added element is the same as the existing elements on the queue.
 func (q *Queue) Enqueue(i interface{}) error {
     if q.size + 1 > q.capacity {
@@ -44,7 +54,7 @@ func (q *Queue) Enqueue(i interface{}) error {
         q.back = e
     } else {
         if reflect.TypeOf(i) != reflect.TypeOf(q.front.value) {
-            return errors.New("type mismatch")
+            return &EnqueueTypeError{passed: reflect.TypeOf(i).Name(), stored: reflect.TypeOf(q.front.value).Name()}
         }
         q.back.next = e
         q.back = e

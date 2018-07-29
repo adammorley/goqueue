@@ -37,7 +37,9 @@ func TestQueue(t *testing.T) {
     var q2 *Queue = New(4)
     q2.Enqueue(2)
     q2.Enqueue(-2)
-    if q2.Enqueue(4.3) == nil {
+    e := q2.Enqueue(4.3)
+    // this means: if the error returned is not of the error type defined in the file, then it's an error.  golang syntax, ftw
+    if _, ok := e.(*EnqueueTypeError); !ok {
         t.Error("expected error")
     }
 }
